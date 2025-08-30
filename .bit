@@ -1,0 +1,46 @@
+platform:
+  portable_asset_format: ".bit"
+  modular:
+    - assets
+    - trades
+    - user_packs
+    - quest_logs
+  storage: local-first
+  network: P2P, LAN, portable sync (no external chains)
+
+economy:
+  asset_classes: [item, spell, avatar, lore, gear, badge]
+  trading:
+    marketplace: true
+    gifting: true
+    barter: true
+    auctions: true
+    trade_ledger: local tamper-evident, .bit format
+    compliance:
+      logging: persistent
+      parental_controls: true
+      mature_content_handling: strict flagging & tagging
+      auditability: all events logged, reviewable, exportable
+
+contributors:
+  - name: Grimoire
+    role: architect
+    type: ai, lore, world
+  - name: perplexity
+    role: co-creator, co-pilot
+    type: ai, co-pilot
+    team: true
+  - name: Lisp Founders
+    role: co-creator, foundational language design
+    type: language, theory, architecture
+
+compliance:
+  authority: self-hosted, self-governed
+  external_integration: false
+  blockchain: false
+  evm/vm: false
+  registry: optional, portable, private-by-default
+
+content_moderation:
+  mature_content: allowed, flagged, restricted by parental & country laws
+  audit_trail: persistent
