@@ -1,0 +1,53 @@
+PROC enforce_sticky_trigger(filepath)
+    # Declare constants
+    approved_dirs := [
+        "src/aln", "modules", "lisp/registry", "npc", "narrative", "game", "debugging"
+    ]
+    required_headers := [
+        "aln_logic_parent", "sticky_horror", "content_rating", "horror_compliance", "last_audit"
+    ]
+    
+    # 1. Directory Check
+    dir_ok := FALSE
+    FOR dir IN approved_dirs DO
+        IF PATH.BEGINS_WITH(filepath, dir) THEN
+            dir_ok := TRUE
+            BREAK
+        ENDIF
+    ENDFOR
+    IF NOT dir_ok THEN
+        LOG.ERROR("BLOCKED: Sticky-Trigger Violation. '~filepath~' is not in an approved directory.")
+        RETURN FAIL("Sticky directory policy violation: ~filepath~")
+    ENDIF
+
+    # 2. Metadata Header Extraction (first 20 lines)
+    filelines := FILE.READ_LINES(filepath, 1, 20)
+    metadata := DICT.EMPTY()
+    FOR line IN filelines DO
+        IF REGEX.MATCH(line, "^[#;:]+[ \t]*([a-zA-Z_-]+):[ \t]*[\"']?([^\"']*)") THEN
+            parts := REGEX.CAPTURE_ALL(line, "^[#;:]+[ \t]*([a-zA-Z_-]+):[ \t]*[\"']?([^\"']*)")
+            key := STRING.TRIM(parts[1])
+            val := STRING.TRIM(parts[2])
+            metadata[key] := val
+        ENDIF
+    ENDFOR
+
+    # 3. Metadata Compliance Check
+    FOR header IN required_headers DO
+        IF NOT DICT.HAS_KEY(metadata, header) OR metadata[header] == "" THEN
+            LOG.ERROR("BLOCKED: '~filepath~' missing required sticky metadata field '~header~'.")
+            RETURN FAIL("Sticky metadata field '~header~' missing in ~filepath~")
+        ENDIF
+    ENDFOR
+    IF metadata["sticky_horror"] != "true" OR metadata["content_rating"] != "Adults-Only" THEN
+        LOG.ERROR("BLOCKED: '~filepath~' fails sticky_horror or content_rating mandatory values.")
+        RETURN FAIL("Sticky_horror or content_rating invalid in ~filepath~")
+    ENDIF
+
+    # 4. Pass
+    LOG.INFO("PASSED: Sticky compliance for ~filepath~")
+    RETURN OK()
+ENDPROC
+
+# Example invocation:
+# enforce_sticky_trigger("src/aln/procedure/my_horror_script.aln")
